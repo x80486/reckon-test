@@ -37,11 +37,14 @@ dependencies {
   //  BOM Support
   //-----------------------------------------------------------------------------------------------
 
-  testImplementation(enforcedPlatform("org.junit:junit-bom:${project.property("junit.version")}"))
+  testImplementation(enforcedPlatform("org.junit:junit-bom:5.8.2"))
 
   //-----------------------------------------------------------------------------------------------
   //  Project Dependencies
   //-----------------------------------------------------------------------------------------------
+
+  implementation("ch.qos.logback:logback-classic:1.2.10")
+  implementation("org.slf4j:slf4j-api:1.7.32")
 
   //-----------------------------------------------------------------------------------------------
   //  Test Dependencies
