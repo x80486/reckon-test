@@ -1,0 +1,14 @@
+pluginManagement {
+  plugins {
+    id("com.gorylenko.gradle-git-properties").version("2.4.0-rc2")
+    id("org.ajoberstar.reckon").version("0.13.1")
+  }
+
+  repositories {
+    // mavenLocal() // Uncomment when needed
+    gradlePluginPortal()
+    mavenCentral()
+  }
+}
+
+rootProject.name = "reckon-test"

@@ -1,0 +1,146 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.owasp.dependencycheck.reporting.ReportGenerator
+
+import java.nio.charset.StandardCharsets
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+plugins {
+  id("com.gorylenko.gradle-git-properties")
+  id("org.ajoberstar.reckon")
+  id("org.gradle.application")
+  id("org.gradle.eclipse")
+  id("org.gradle.idea")
+  id("org.gradle.java")
+}
+
+group = "org.acme"
+description = "Template for Gradle-based Projects"
+
+configurations {
+  all {
+    resolutionStrategy {
+      failOnNonReproducibleResolution()
+      preferProjectModules()
+    }
+  }
+  runtimeClasspath.shouldResolveConsistentlyWith(compileClasspath)
+}
+
+dependencies {
+  //-----------------------------------------------------------------------------------------------
+  //  Experimental Dependencies
+  //-----------------------------------------------------------------------------------------------
+
+  //-----------------------------------------------------------------------------------------------
+  //  BOM Support
+  //-----------------------------------------------------------------------------------------------
+
+  testImplementation(enforcedPlatform("org.junit:junit-bom:${project.property("junit.version")}"))
+
+  //-----------------------------------------------------------------------------------------------
+  //  Project Dependencies
+  //-----------------------------------------------------------------------------------------------
+
+  //-----------------------------------------------------------------------------------------------
+  //  Test Dependencies
+  //-----------------------------------------------------------------------------------------------
+
+  testImplementation("org.assertj:assertj-core:3.22.0")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+
+repositories {
+  // mavenLocal() // Uncomment when needed
+  // maven { url("${project.property("artifactory.url")}/namespace/location") }
+  mavenCentral()
+}
+
+//=================================================================================================
+//  P L U G I N S
+//=================================================================================================
+
+application {
+  mainClass.set("org.acme.Application")
+}
+
+gitProperties {
+  extProperty = "gitProps"
+  gitPropertiesName = "git.properties"
+  keys = [
+    "git.branch",
+    "git.build.host",
+    "git.build.version",
+    "git.commit.id",
+    "git.commit.id.abbrev",
+    "git.commit.time",
+    "git.remote.origin.url",
+    "git.total.commit.count",
+  ]
+}
+
+java {
+  consistentResolution {
+    useCompileClasspathVersions()
+  }
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+}
+
+reckon {
+  scopeFromProp()
+  snapshotFromProp()
+}
+
+//=================================================================================================
+//  T A S K S
+//=================================================================================================
+
+tasks.withType(Jar) {
+  final def vendor = "Acme Corp."
+  final def attributes = [
+    "Application-Name": project.name,
+    "Build-Date": ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME),
+    // "Build-Number": "${-> env.ENVIRONMENT_VARIABLE.value}",
+    "Created-By": System.getProperty("user.name"),
+    "Gradle-Version": gradle.gradleVersion,
+    "Implementation-Title": project.name,
+    "Implementation-Vendor": vendor,
+    "Implementation-Version": "${-> project.ext.gitProps["git.commit.id"]}",
+    "JDK-Version": System.getProperty("java.version"),
+    "Specification-Title": project.name,
+    "Specification-Vendor": vendor,
+    "Specification-Version": project.version,
+  ]
+  // archiveFileName = "${project.name}.jar"
+  exclude(".gitkeep")
+  manifest.attributes(attributes)
+}
+
+tasks.withType(JavaCompile) {
+  final def arguments = ["-parameters"]
+  options.compilerArgs.addAll(arguments)
+  options.encoding("${StandardCharsets.UTF_8}")
+}
+
+tasks.withType(Test) {
+  testLogging {
+    events = [
+      TestLogEvent.FAILED,
+      TestLogEvent.SKIPPED
+    ]
+    exceptionFormat = TestExceptionFormat.FULL
+    showCauses = true
+    showExceptions = true
+    showStackTraces = true
+  }
+  useJUnitPlatform()
+}
+
+//-------------------------------------------------------------------------------------------------
+//  Custom Tasks
+//-------------------------------------------------------------------------------------------------

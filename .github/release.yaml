@@ -1,0 +1,15 @@
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Assemble
+        run: ./gradlew assemble
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
